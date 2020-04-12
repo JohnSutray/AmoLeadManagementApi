@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace AmoLeadManagementApi {
   public class Program {
@@ -13,8 +7,12 @@ namespace AmoLeadManagementApi {
       CreateHostBuilder(args).Build().Run();
     }
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
+    private static IHostBuilder CreateHostBuilder(string[] args) =>
       Host.CreateDefaultBuilder(args)
-        .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+        .ConfigureWebHostDefaults(ConfigureBuilder);
+    
+    private static void ConfigureBuilder(IWebHostBuilder builder) => builder
+      .UseUrls("https://localhost:3000")
+      .UseStartup<Startup>();
   }
 }
