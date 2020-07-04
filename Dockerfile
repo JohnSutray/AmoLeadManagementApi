@@ -11,6 +11,4 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
 COPY --from=builder /app .
 
-EXPOSE 80
-
 CMD ["dotnet", "AmoLeadManagementApi.dll"]
