@@ -10,9 +10,8 @@ namespace AmoLeadManagementApi {
     private static IHostBuilder CreateHostBuilder(string[] args) =>
       Host.CreateDefaultBuilder(args)
         .ConfigureWebHostDefaults(ConfigureBuilder);
-    
+
     private static void ConfigureBuilder(IWebHostBuilder builder) => builder
-      .UseUrls("https://localhost:3000")
       .UseStartup<Startup>();
   }
 }

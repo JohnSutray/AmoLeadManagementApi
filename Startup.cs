@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Linq;
 
 namespace AmoLeadManagementApi {
   public class Startup {
@@ -25,6 +26,7 @@ namespace AmoLeadManagementApi {
 
       app.UseRouting();
       app.UseCorsOption();
+      app.UseStaticFiles();
       app.UseEndpoints(builder => builder.MapControllers());
     }
   }

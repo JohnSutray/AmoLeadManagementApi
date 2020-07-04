@@ -7,15 +7,18 @@ namespace AmoLeadManagementApi.Controllers {
   [Route("lead")]
   [ApiController]
   public class LeadController : Controller {
-    private LeadService LeadService { get; }
+    private readonly LeadService _leadService;
 
-    public LeadController(LeadService leadService) => LeadService = leadService;
+    public LeadController(LeadService leadService) => _leadService = leadService;
 
     [HttpPost]
     public async Task<ActionResult> CreateLead(CreateLeadDto dto) {
-      await LeadService.CreateLead(dto);
+      await _leadService.CreateLead(dto);
 
       return Ok();
     }
+
+    [HttpGet]
+    public string Test() => "test-endpoint";
   }
 }
