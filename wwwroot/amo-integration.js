@@ -369,7 +369,7 @@ class FormScraper {
 
     request.open(
       'POST',
-      'https://amo.import-shop.net/lead',
+      'https://amo-lead-api.herokuapp.com/lead',
       false,
     );
     request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
