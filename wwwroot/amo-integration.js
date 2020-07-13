@@ -354,7 +354,22 @@ class FormScraper {
     const contactName = 'Новый контакт';
     const amoLead = new AmoLead(leadName, contactName, tags, info, phone, siteName, noteContent);
 
-    this.sendLead(amoLead);
+    if (this.validatePhone(phone)) {
+      this.sendLead(amoLead);
+    }
+  }
+
+  /**
+   * Validates phone if phone filter present
+   * @param {String} phone
+   * @returns {Boolean}
+   */
+  validatePhone(phone) {
+    const phoneFilterAttribute = 'data-phone-filter';
+    const scriptTag = document.querySelector(`script[${phoneFilterAttribute}]`);
+    const filterValue = scriptTag && scriptTag.getAttribute(phoneFilterAttribute);
+
+    return !filterValue || new RegExp(filterValue).test(phone);
   }
 
   /**
@@ -372,7 +387,7 @@ class FormScraper {
       'https://amo-lead-api.herokuapp.com/lead',
       false,
     );
-    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
     request.send(JSON.stringify({
       ...amoLead,
       ...utmData,
