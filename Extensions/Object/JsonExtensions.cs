@@ -1,7 +1,7 @@
-﻿﻿using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace ConsoleApp1 {
+namespace AmoLeadManagementApi.Extensions.Object {
   public static class JsonExtensions {
     public static string ToJson(this object value) => JsonConvert.SerializeObject(value);
 

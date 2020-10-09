@@ -1,11 +1,10 @@
+using AmoLeadManagementApi.Extensions.ServiceCollection;
 using AmoLeadManagementApi.Factories;
 using AmoLeadManagementApi.Services;
-using AmoLeadManagementApi.Extensions.ServiceCollection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json.Linq;
 
 namespace AmoLeadManagementApi {
   public class Startup {
@@ -15,9 +14,11 @@ namespace AmoLeadManagementApi {
       .AddCors()
       .AddTransient<LeadService>()
       .AddTransient<AmoService>()
+      .AddTransient<NotificationService>()
       .AddHttpClient()
       .AddTransient(HttpClientFactory.Create)
-      .AddSingleton(AmoAuthFactory.Create);
+      .AddSingleton(AmoAuthFactory.Create)
+      .AddSingleton(TelegramBotFactory.Create);
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
       if (env.IsDevelopment()) {

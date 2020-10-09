@@ -8,17 +8,26 @@ namespace AmoLeadManagementApi.Controllers {
   [ApiController]
   public class LeadController : Controller {
     private readonly LeadService _leadService;
+    private readonly NotificationService _notificationService;
 
-    public LeadController(LeadService leadService) => _leadService = leadService;
+    public LeadController(
+      LeadService leadService,
+      NotificationService notificationService
+      ) {
+      _leadService = leadService;
+      _notificationService = notificationService;
+    }
 
     [HttpPost]
     public async Task<ActionResult> CreateLead(CreateLeadDto dto) {
-      await _leadService.CreateLead(dto);
+      var (contactResult, leadResult) = await _leadService.CreateLead(dto);
+
+      Task.Run(() => _notificationService.Notify(dto, contactResult, leadResult));
 
       return Ok();
     }
 
     [HttpGet]
-    public string Test() => "test-endpoint";
+    public string Test() => "test-endpoint-result";
   }
 }

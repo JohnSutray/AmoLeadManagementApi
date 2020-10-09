@@ -1,14 +1,16 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using AmoLeadManagementApi.Models;
-using ConsoleApp1;
+using AmoLeadManagementApi;
+using AmoLeadManagementApi.Extensions.Object;
+using Newtonsoft.Json;
 
 namespace AmoLeadManagementApi.Services {
   public class AmoService {
-    private AmoAuth AmoAuth { get; }
-    private HttpClient Client { get; }
+    private readonly AmoAuth _amoAuth;
+    private readonly HttpClient _client;
 
-    private string BaseUrl => $"https://{AmoAuth.Domain}.amocrm.ru";
+    private string BaseUrl => $"https://{_amoAuth.Domain}.amocrm.ru";
     private string AuthUrl => $"{BaseUrl}/private/api/auth.php";
     private string ContactUrl => $"{BaseUrl}/api/v2/contacts";
     private string LeadUrl => $"{BaseUrl}/api/v2/leads";
@@ -18,22 +20,24 @@ namespace AmoLeadManagementApi.Services {
       AmoAuth auth,
       HttpClient client
     ) {
-      AmoAuth = auth;
-      Client = client;
+      _amoAuth = auth;
+      _client = client;
     }
 
     private int GetIdFromAddResult(string result) => (int) result.ToJObject().SelectToken("_embedded.items[0].id");
 
+    private string GetFormattedJsonString(string response) => response.ToJObject().ToString(Formatting.Indented);
+
     private async Task<string> PostAsync(string url, string content) {
       var requestContent = new StringContent(content);
-      var response = await Client.PostAsync(url, requestContent);
+      var response = await _client.PostAsync(url, requestContent);
 
       return await response.Content.ReadAsStringAsync();
     }
 
-    private async Task Authorize() => await PostAsync(AuthUrl, AmoAuth.ToDto().ToJson());
+    private async Task Authorize() => await PostAsync(AuthUrl, _amoAuth.ToDto().ToJson());
 
-    private async Task<int> CreateEntity(string url, IDto entityDto) {
+    private async Task<AmoResult> CreateEntity(string url, IDto entityDto) {
       await Authorize();
 
       var result = await PostAsync(
@@ -41,13 +45,16 @@ namespace AmoLeadManagementApi.Services {
         entityDto.ToDto().ToAddDto().ToJson()
       );
 
-      return GetIdFromAddResult(result);
+      return new AmoResult {
+        EntityId = GetIdFromAddResult(result),
+        ResponseJson = GetFormattedJsonString(result)
+      };
     }
 
-    public async Task<int> CreateLead(Lead lead) => await CreateEntity(LeadUrl, lead);
+    public async Task<AmoResult> CreateLead(Lead lead) => await CreateEntity(LeadUrl, lead);
 
-    public async Task<int> CreateContact(Contact contact) => await CreateEntity(ContactUrl, contact);
+    public async Task<AmoResult> CreateContact(Contact contact) => await CreateEntity(ContactUrl, contact);
 
-    public async Task<int> CreateNote(Note note) => await CreateEntity(NoteUrl, note);
+    public async Task<AmoResult> CreateNote(Note note) => await CreateEntity(NoteUrl, note);
   }
 }

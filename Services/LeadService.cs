@@ -8,34 +8,39 @@ namespace AmoLeadManagementApi.Services {
 
     public LeadService(AmoService manager) => AmoService = manager;
 
-    public async Task CreateLead(CreateLeadDto dto) {
+    public async Task<(AmoResult contactResult, AmoResult leadResult)> CreateLead(CreateLeadDto dto) {
       var fields = new CustomField[] {
         new InfoCustomField(dto.Info),
         new PhoneCustomField(dto.Phone),
-        new SourceCustomField(dto.Source), 
-        new UtmCampaignCustomField(dto.UtmCampaign), 
+        new SourceCustomField(dto.Source),
+        new UtmCampaignCustomField(dto.UtmCampaign),
         new UtmContentCustomField(dto.UtmContent),
         new UtmMediumCustomField(dto.UtmMedium),
         new UtmSourceCustomField(dto.UtmSource),
-        new UtmTermCustomField(dto.UtmTerm), 
+        new UtmTermCustomField(dto.UtmTerm),
       };
 
-      var contactId = await AmoService.CreateContact(new Contact {
+      var contactResult = await AmoService.CreateContact(new Contact {
         Name = dto.ContactName,
         CustomFields = fields
       });
 
-      var leadId = await AmoService.CreateLead(new Lead {
+      var leadResult = await AmoService.CreateLead(new Lead {
         Name = dto.LeadName,
         Tags = dto.Tags,
-        ContactId = contactId,
+        ContactId = contactResult.EntityId,
         CustomFields = fields
       });
 
       await AmoService.CreateNote(new Note {
         Text = dto.NoteContent,
-        LeadId = leadId
+        LeadId = leadResult.EntityId
       });
+
+      return (
+        contactResult,
+        leadResult
+      );
     }
   }
 }
