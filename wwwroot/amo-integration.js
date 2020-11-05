@@ -280,6 +280,10 @@ class FormScraper {
       ['light-point']: 'Точки освещения',
       ['feedback']: 'Обратная связь',
     };
+    this.developmentUrl = 'http://localhost:3000/lead';
+    this.productionUrl = 'https://amo-lead-api.herokuapp.com/lead';
+    this.characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    this.id = `Client ${this.createId(4)}`;
   }
 
   /**
@@ -373,6 +377,24 @@ class FormScraper {
   }
 
   /**
+   * Checks is in development mode
+   * @returns {Boolean}
+   */
+  isDevelopment() {
+    return !!document.querySelector('script[data-dev]');
+  }
+
+  /**
+   * Returns api url
+   * @returns {string}
+   */
+  getUrl() {
+    return this.isDevelopment()
+      ? this.developmentUrl
+      : this.productionUrl;
+  }
+
+  /**
    * Send amo lead to server
    * @param {AmoLead} amoLead
    * @returns {void}
@@ -380,19 +402,26 @@ class FormScraper {
    */
   sendLead(amoLead) {
     const utmData = UtmData.parseUtmTags();
-    const request = new XMLHttpRequest();
 
-    request.open(
-      'POST',
-      'https://amo-lead-api.herokuapp.com/lead',
-      false,
-    );
-    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    request.send(JSON.stringify({
+    this.sendPostRequest(this.getUrl(), false, {
+      id: this.id,
       ...amoLead,
       ...utmData,
-    }));
+    });
   };
+
+  /**
+   * Sends POST request
+   * @param {String} url
+   * @param {Boolean} isAsync
+   * @param {Object} data
+   */
+  sendPostRequest(url, isAsync, data) {
+    const request = new XMLHttpRequest();
+    request.open('POST', url, isAsync);
+    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    request.send(JSON.stringify(data));
+  }
 
   /**
    * Adds document to registered and subscribes on submit event
@@ -420,12 +449,34 @@ class FormScraper {
   }
 
   /**
+   * Creates random id
+   * @param length
+   * @returns {string}
+   */
+  createId(length) {
+    let result = '';
+    for (let i = 0; i < length; i++ ) {
+      const randomPosition = Math.floor(Math.random() * this.characters.length)
+      result += this.characters.charAt(randomPosition);
+    }
+    return result;
+  }
+
+  /**
    * Start documents and events processing
    * @returns {void}
    */
   startScraping() {
     setInterval(this.handleNewDocuments.bind(this), 500);
     this.subscribeOnSubmit(document);
+    this.sendPostRequest(
+      `${this.getUrl()}/session`,
+      true,
+      {
+        info: `${navigator.platform}\n${navigator.userAgent}`,
+        id: this.id,
+      },
+    );
   }
 }
 

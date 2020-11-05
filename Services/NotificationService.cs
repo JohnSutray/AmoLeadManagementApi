@@ -14,41 +14,39 @@ namespace AmoLeadManagementApi.Services {
     private readonly IHostEnvironment _environment;
 
     public NotificationService(
-      ITelegramBotClient client,
-      IConfiguration configuration,
-      IHostEnvironment environment
+      ITelegramBotClient client, IConfiguration configuration, IHostEnvironment environment
     ) {
       _client = client;
       _configuration = configuration;
       _environment = environment;
     }
 
-    public async Task<Message[]> Notify(
-      CreateLeadDto dto,
-      AmoResult contactResult,
-      AmoResult leadResult
-    ) {
-      var receiversString = _environment.IsDevelopment()
-        ? _configuration.GetSection("Telegram")["Receivers"]
-        : Environment.GetEnvironmentVariable("TELEGRAM_RECEIVERS");
-      var receivers = receiversString.Split(";");
-      var time = DateTime.Now.AddHours(3);
-      var notification = $"ContactName: {dto.ContactName}\n" +
-                         $"LeadName: {dto.LeadName}\n" +
-                         $"Phone: {dto.Phone}\n" +
-                         $"Info: {dto.Info}\n" +
-                         $"Date: {time.ToLongDateString()}\n" +
-                         $"Time: {time.ToLongTimeString()}\n" +
-                         "Lead request:\n" +
-                         leadResult.ResponseJson +
-                         "\nContact result:\n" +
-                         contactResult.ResponseJson;
+    private DateTime Now => DateTime.Now.AddHours(3);
 
-      return await Task.WhenAll(
-        receivers.Select(
-          receiver => _client.SendTextMessageAsync(int.Parse(receiver), notification)
-        )
-      );
-    }
+    public async Task NotifyStart(string clientName, string additionalInfo) =>
+      await SendNotification($"{clientName}\n\n{additionalInfo}");
+
+    private async Task<Message[]> SendNotification(string notification) => await Task.WhenAll(
+      Receivers.Select(receiver => _client.SendTextMessageAsync(int.Parse(receiver), notification))
+    );
+
+    private string[] Receivers => _environment.IsDevelopment()
+      ? _configuration.GetSection("Telegram")["Receivers"].Split(";")
+      : Environment.GetEnvironmentVariable("TELEGRAM_RECEIVERS").Split(";");
+
+
+    public async Task<Message[]> Notify(
+      CreateLeadDto dto, AmoResult contactResult, AmoResult leadResult
+    ) => await SendNotification(
+      $"Contact ID: {dto.Id}\n" +
+      $"ContactName: {dto.ContactName}\n" +
+      $"LeadName: {dto.LeadName}\n" +
+      $"Phone: {dto.Phone}\n" +
+      $"Info: {dto.Info}\n" +
+      $"Date: {Now.ToLongDateString()}\n" +
+      $"Time: {Now.ToLongTimeString()}\n" +
+      $"Lead request: {leadResult.ResponseCode}\n" +
+      $"Contact result: {contactResult.ResponseCode}"
+    );
   }
 }

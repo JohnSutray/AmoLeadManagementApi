@@ -1,5 +1,6 @@
 ﻿namespace AmoLeadManagementApi.Models {
   public class CreateLeadDto {
+    public string Id { get; set; }
     public string LeadName { get; set; }
     public string ContactName { get; set; }
     public string[] Tags { get; set; }

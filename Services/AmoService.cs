@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace AmoLeadManagementApi.Services {
   public class AmoService {
     private readonly AmoAuth _amoAuth;
-    private readonly HttpClient _client;
+    private readonly HttpClient _client = new HttpClient();
 
     private string BaseUrl => $"https://{_amoAuth.Domain}.amocrm.ru";
     private string AuthUrl => $"{BaseUrl}/private/api/auth.php";
@@ -16,23 +16,19 @@ namespace AmoLeadManagementApi.Services {
     private string LeadUrl => $"{BaseUrl}/api/v2/leads";
     private string NoteUrl => $"{BaseUrl}/api/v2/notes";
 
-    public AmoService(
-      AmoAuth auth,
-      HttpClient client
-    ) {
+    public AmoService(AmoAuth auth) {
       _amoAuth = auth;
-      _client = client;
     }
 
     private int GetIdFromAddResult(string result) => (int) result.ToJObject().SelectToken("_embedded.items[0].id");
 
     private string GetFormattedJsonString(string response) => response.ToJObject().ToString(Formatting.Indented);
 
-    private async Task<string> PostAsync(string url, string content) {
+    private async Task<HttpResponseMessage> PostAsync(string url, string content) {
       var requestContent = new StringContent(content);
       var response = await _client.PostAsync(url, requestContent);
 
-      return await response.Content.ReadAsStringAsync();
+      return response;
     }
 
     private async Task Authorize() => await PostAsync(AuthUrl, _amoAuth.ToDto().ToJson());
@@ -40,14 +36,13 @@ namespace AmoLeadManagementApi.Services {
     private async Task<AmoResult> CreateEntity(string url, IDto entityDto) {
       await Authorize();
 
-      var result = await PostAsync(
-        url,
-        entityDto.ToDto().ToAddDto().ToJson()
-      );
+      var result = await PostAsync(url, entityDto.ToDto().ToAddDto().ToJson());
+      var content = await result.Content.ReadAsStringAsync();
 
       return new AmoResult {
-        EntityId = GetIdFromAddResult(result),
-        ResponseJson = GetFormattedJsonString(result)
+        EntityId = GetIdFromAddResult(content),
+        ResponseJson = GetFormattedJsonString(content),
+        ResponseCode = (int) result.StatusCode
       };
     }
 

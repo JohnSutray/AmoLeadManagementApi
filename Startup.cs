@@ -15,8 +15,6 @@ namespace AmoLeadManagementApi {
       .AddTransient<LeadService>()
       .AddTransient<AmoService>()
       .AddTransient<NotificationService>()
-      .AddHttpClient()
-      .AddTransient(HttpClientFactory.Create)
       .AddSingleton(AmoAuthFactory.Create)
       .AddSingleton(TelegramBotFactory.Create);
 
