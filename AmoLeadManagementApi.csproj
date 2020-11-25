@@ -10,10 +10,18 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="wwwroot\index.html">
+      <Content Include="integration-script\src\main.ts">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
+      <Content Include="integration-script\src\index.html">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot" />
     </ItemGroup>
 
 </Project>

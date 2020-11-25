@@ -1,26 +1,22 @@
 class Punycode {
-  constructor() {
-    this._initial_n = 0x80;
-    this._initialBias = 72;
-    this._delimiter = '\x2D';
-    this._base = 36;
-    this._damp = 700;
-    this._tMin = 1;
-    this._tMax = 26;
-    this._skew = 38;
-    this._maxInt = 0x7FFFFFFF;
-  }
+  readonly _initial_n = 0x80;
+  readonly _initialBias = 72;
+  readonly _delimiter = '\x2D';
+  readonly _base = 36;
+  readonly _damp = 700;
+  readonly _tMin = 1;
+  readonly _tMax = 26;
+  readonly _skew = 38;
+  readonly _maxInt = 0x7FFFFFFF;
 
-  /**
-   * @private
-   */
-  encodeToUtf16(input) {
+  private encodeToUtf16(input: number[]): string {
     let output = [], i = 0, len = input.length, value;
     while (i < len) {
       value = input[i++];
-      if ((value & 0xF800) === 0xD800) {
+
+      if ((value & 0xF800) === 0xD800)
         throw new RangeError('UTF-16(encode): Illegal UTF-16 value');
-      }
+
       if (value > 0xFFFF) {
         value -= 0x10000;
         output.push(String.fromCharCode(((value >>> 10) & 0x3FF) | 0xD800));
@@ -31,17 +27,17 @@ class Punycode {
     return output.join('');
   }
 
-  /**
-   * @private
-   */
-  decodeDigit(cp) {
-    return cp - 48 < 10 ? cp - 22 : cp - 65 < 26 ? cp - 65 : cp - 97 < 26 ? cp - 97 : this._base;
+  private decodeDigit(cp: number): number {
+    return cp - 48 < 10
+      ? cp - 22
+      : cp - 65 < 26
+        ? cp - 65
+        : cp - 97 < 26
+          ? cp - 97
+          : this._base;
   }
 
-  /**
-   * @private
-   */
-  adapt(delta, numpoints, firsttime) {
+  private adapt(delta: number, numpoints: number, firsttime: boolean): number {
     let k;
     delta = firsttime ? Math.floor(delta / this._damp) : (delta >> 1);
     delta += Math.floor(delta / numpoints);
@@ -49,13 +45,11 @@ class Punycode {
     for (k = 0; delta > (((this._base - this._tMin) * this._tMax) >> 1); k += this._base) {
       delta = Math.floor(delta / (this._base - this._tMin));
     }
+
     return Math.floor(k + (this._base - this._tMin + 1) * delta / (delta + this._skew));
   }
 
-  /**
-   * @private
-   */
-  decode(input, preserveCase) {
+  private decode(input: string, preserveCase?: boolean): string {
     const output = [];
     const case_flags = [];
     const input_length = input.length;
@@ -67,12 +61,14 @@ class Punycode {
     if (basic < 0) basic = 0;
 
     for (j = 0; j < basic; ++j) {
-      if (preserveCase) case_flags[output.length] = (input.charCodeAt(j) - 65 < 26);
-      if (input.charCodeAt(j) >= 0x80) {
+      if (preserveCase)
+        case_flags[output.length] = (input.charCodeAt(j) - 65 < 26);
+      if (input.charCodeAt(j) >= 0x80)
         throw new RangeError('Illegal input >= 0x80');
-      }
+
       output.push(input.charCodeAt(j));
     }
+
     for (ic = basic > 0 ? basic + 1 : 0; ic < input_length;) {
       for (oldi = i, w = 1, k = this._base; ; k += this._base) {
         if (ic >= input_length) {
@@ -98,9 +94,10 @@ class Punycode {
       }
       out = output.length + 1;
       bias = this.adapt(i - oldi, out, oldi === 0);
-      if (Math.floor(i / out) > this._maxInt - n) {
+
+      if (Math.floor(i / out) > this._maxInt - n)
         throw RangeError('punycode_overflow(3)');
-      }
+
       n += Math.floor(i / out);
       i %= out;
       if (preserveCase) {
@@ -110,50 +107,44 @@ class Punycode {
       output.splice(i, 0, n);
       i++;
     }
-    if (preserveCase) {
-      for (i = 0, len = output.length; i < len; i++) {
-        if (case_flags[i]) {
+
+    if (preserveCase)
+      for (i = 0, len = output.length; i < len; i++)
+        if (case_flags[i])
           output[i] = (String.fromCharCode(output[i]).toUpperCase()).charCodeAt(0);
-        }
-      }
-    }
+
     return this.encodeToUtf16(output);
   }
 
-  /**
-   * Translate punycoded domain to unicode domain
-   * @param {String} domain
-   * @returns {string}
-   */
-  toUnicode(domain) {
+  toUnicode(domain: string): string {
     const domain_array = domain.split('.');
     const out = [];
     for (let i = 0; i < domain_array.length; ++i) {
       const s = domain_array[i];
-      out.push(s.match(/^xn--/) ? this.decode(s.slice(4)) : s);
+      out.push(
+        s.match(/^xn--/)
+          ? this.decode(s.slice(4))
+          : s,
+      );
     }
     return out.join('.');
   }
 
-  /**
-   * Check is domain punycoded
-   * @param {string} domain
-   * @returns {boolean}
-   */
-  isPunyCode(domain) {
+  isPunyCode(domain: string): boolean {
     return domain.startsWith('xn--');
   }
 }
 
 class AmoLead {
-  constructor(leadName, contactName, tags, info, phone, source, noteContent) {
-    this.leadName = leadName;
-    this.contactName = contactName;
-    this.tags = tags;
-    this.info = info;
-    this.phone = phone;
-    this.source = source;
-    this.noteContent = noteContent;
+  constructor(
+    readonly leadName: string,
+    readonly contactName: string,
+    readonly tags: string[],
+    readonly info: string,
+    readonly phone: string,
+    readonly source: string,
+    readonly noteContent: string,
+  ) {
   }
 }
 
@@ -169,10 +160,10 @@ class UtmData {
       return new UtmData();
     }
 
-    const queryParams = location.href.slice(queryStartAt + 1)
+    const queryParams: [string, string][] = location.href.slice(queryStartAt + 1)
       .split('&')
-      .map(param => param.split('='));
-    const paramsMap = new Map(queryParams);
+      .map(param => param.split('=') as [string, string]);
+    const paramsMap = new Map<string, string>(queryParams);
 
     return new UtmData(
       paramsMap.get('utm_campaign'),
@@ -184,17 +175,12 @@ class UtmData {
   }
 
   constructor(
-    utmCampaign,
-    utmContent,
-    utmMedium,
-    utmSource,
-    utmTerm,
+    readonly utmCampaign?: string,
+    readonly utmContent?: string,
+    readonly utmMedium?: string,
+    readonly utmSource?: string,
+    readonly utmTerm?: string,
   ) {
-    this.utmCampaign = utmCampaign;
-    this.utmContent = utmContent;
-    this.utmMedium = utmMedium;
-    this.utmSource = utmSource;
-    this.utmTerm = utmTerm;
   }
 }
 
@@ -224,7 +210,7 @@ class InputElementsProcessor {
     );
   }
 
-  static findInputElements(formElement) {
+  static findInputElements(formElement): HTMLInputElement[] {
     return Array.from(
       formElement.querySelectorAll('input'),
     );
@@ -271,38 +257,24 @@ class InputElementsProcessor {
 }
 
 class FormScraper {
-  constructor() {
-    this._registeredDocuments = [];
-    this._nameMap = {
-      ['type-ceil']: 'Тип потолка',
-      ['phone']: 'Телефон',
-      ['area']: 'Площадь',
-      ['light-point']: 'Точки освещения',
-      ['feedback']: 'Обратная связь',
-    };
-    this.developmentUrl = 'http://localhost:3000/lead';
-    this.productionUrl = 'https://amo-lead-api.herokuapp.com/lead';
-    this.characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    this.id = `Client ${this.createId(4)}`;
-  }
+  readonly _registeredDocuments = [];
+  readonly _nameMap = {
+    ['type-ceil']: 'Тип потолка',
+    ['phone']: 'Телефон',
+    ['area']: 'Площадь',
+    ['light-point']: 'Точки освещения',
+    ['feedback']: 'Обратная связь',
+  };
+  readonly developmentUrl = 'http://localhost:3000/lead';
+  readonly productionUrl = 'https://amo-lead-api.herokuapp.com/lead';
+  readonly characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  readonly id = `Client ${this.createId(4)}`;
 
-  /**
-   * Check text is cyrillic
-   * @param {string} text
-   * @returns {boolean}
-   * @private
-   */
-  isTextRussian(text) {
+  isTextRussian(text: string): boolean {
     return /[а-яА-ЯЁё]/.test(text);
   }
 
-  /**
-   * Returns original name or map it into russian
-   * @param {string} name
-   * @returns {string}
-   * @private
-   */
-  mapName(name) {
+  mapName(name: string): string {
     if (this.isTextRussian(name) || !this._nameMap[name]) {
       return name;
     }
@@ -310,38 +282,23 @@ class FormScraper {
     return this._nameMap[name];
   }
 
-  /**
-   * Return site name(original or transcoded)
-   * @returns {string}
-   * @private
-   */
-  getSiteName() {
+  getSiteName(): string {
+    throw new Error('1221321')
     const punyCode = new Punycode();
     const origin = location.origin
       .replace('https://', '')
       .replace('http://', '');
+
     return punyCode.isPunyCode(origin)
       ? punyCode.toUnicode(origin)
       : origin;
   }
 
-  /**
-   * Scrap data from input elements into single string
-   * @param {HTMLInputElement[]} inputs
-   * @returns {string}
-   * @private
-   */
-  createNoteContent(inputs) {
+  createNoteContent(inputs: HTMLInputElement[]): string {
     return inputs.map(input => `${this.mapName(input.name)}: ${input.value}`).join('\n');
   }
 
-  /**
-   * Handle submit data
-   * @param {Event} event
-   * @returns {void}
-   * @private
-   */
-  onSubmit(event) {
+  onSubmit(event: Event): void {
     const formElement = event.target;
 
     if (!InputElementsProcessor.isRequiredInputsValid(formElement)) {
@@ -363,12 +320,7 @@ class FormScraper {
     }
   }
 
-  /**
-   * Validates phone if phone filter present
-   * @param {String} phone
-   * @returns {Boolean}
-   */
-  validatePhone(phone) {
+  validatePhone(phone: string): boolean {
     const phoneFilterAttribute = 'data-phone-filter';
     const scriptTag = document.querySelector(`script[${phoneFilterAttribute}]`);
     const filterValue = scriptTag && scriptTag.getAttribute(phoneFilterAttribute);
@@ -376,31 +328,17 @@ class FormScraper {
     return !filterValue || new RegExp(filterValue).test(phone);
   }
 
-  /**
-   * Checks is in development mode
-   * @returns {Boolean}
-   */
-  isDevelopment() {
+  isDevelopment(): boolean {
     return !!document.querySelector('script[data-dev]');
   }
 
-  /**
-   * Returns api url
-   * @returns {string}
-   */
-  getUrl() {
+  getUrl(): string {
     return this.isDevelopment()
       ? this.developmentUrl
       : this.productionUrl;
   }
 
-  /**
-   * Send amo lead to server
-   * @param {AmoLead} amoLead
-   * @returns {void}
-   * @private
-   */
-  sendLead(amoLead) {
+  sendLead(amoLead: AmoLead): void {
     const utmData = UtmData.parseUtmTags();
 
     this.sendPostRequest(this.getUrl(), false, {
@@ -410,26 +348,14 @@ class FormScraper {
     });
   };
 
-  /**
-   * Sends POST request
-   * @param {String} url
-   * @param {Boolean} isAsync
-   * @param {Object} data
-   */
-  sendPostRequest(url, isAsync, data) {
+  sendPostRequest(url: string, isAsync: boolean, data: any): void {
     const request = new XMLHttpRequest();
     request.open('POST', url, isAsync);
     request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
     request.send(JSON.stringify(data));
   }
 
-  /**
-   * Adds document to registered and subscribes on submit event
-   * @param {Document} documentElement
-   * @returns {void}
-   * @private
-   */
-  subscribeOnSubmit(documentElement) {
+  subscribeOnSubmit(documentElement: Document): void {
     if (this._registeredDocuments.includes(documentElement)) {
       return;
     }
@@ -438,35 +364,21 @@ class FormScraper {
     documentElement.addEventListener('submit', this.onSubmit.bind(this), true);
   }
 
-  /**
-   * Find all new documents and subscribe on it's submit events
-   * @returns {void}
-   * @private
-   */
-  handleNewDocuments() {
+  handleNewDocuments(): void {
     return InputElementsProcessor.findIframeDocuments()
       .forEach(this.subscribeOnSubmit.bind(this));
   }
 
-  /**
-   * Creates random id
-   * @param length
-   * @returns {string}
-   */
-  createId(length) {
+  createId(length: number): string {
     let result = '';
-    for (let i = 0; i < length; i++ ) {
-      const randomPosition = Math.floor(Math.random() * this.characters.length)
+    for (let i = 0; i < length; i++) {
+      const randomPosition = Math.floor(Math.random() * this.characters.length);
       result += this.characters.charAt(randomPosition);
     }
     return result;
   }
 
-  /**
-   * Start documents and events processing
-   * @returns {void}
-   */
-  startScraping() {
+  startScraping(): void {
     setInterval(this.handleNewDocuments.bind(this), 500);
     this.subscribeOnSubmit(document);
     this.sendPostRequest(
