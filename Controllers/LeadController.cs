@@ -9,37 +9,15 @@ namespace AmoLeadManagementApi.Controllers {
   [ApiController]
   public class LeadController : Controller {
     private readonly LeadService _leadService;
-    private readonly NotificationService _notificationService;
 
-    public LeadController(
-      LeadService leadService,
-      NotificationService notificationService
-    ) {
+    public LeadController(LeadService leadService) =>
       _leadService = leadService;
-      _notificationService = notificationService;
-    }
-
-    [Route("session")]
-    [HttpPost]
-    public ActionResult IndicateSession(AdditionalInfo info) {
-      Task.Run(async () => {
-        try {
-          await _notificationService.NotifyStart(info.Id, info.Info);
-        }
-        catch (Exception e) {
-          Console.WriteLine(e);
-        }
-      });
-
-      return Ok();
-    }
 
     [HttpPost]
     public ActionResult CreateLead(CreateLeadDto dto) {
       Task.Run(async () => {
         try {
-          var (contactResult, leadResult) = await _leadService.CreateLead(dto);
-          await _notificationService.Notify(dto, contactResult, leadResult);
+          await _leadService.CreateLead(dto);
         }
         catch (Exception e) {
           Console.WriteLine(e);

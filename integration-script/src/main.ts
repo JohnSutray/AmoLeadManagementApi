@@ -266,9 +266,7 @@ class FormScraper {
     ['feedback']: 'Обратная связь',
   };
   readonly developmentUrl = 'http://localhost:3000/lead';
-  readonly productionUrl = 'https://amo-lead-api.herokuapp.com/lead';
-  readonly characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  readonly id = `Client ${this.createId(4)}`;
+  readonly productionUrl = 'http://amo-lead-api.herokuapp.com/lead';
 
   isTextRussian(text: string): boolean {
     return /[а-яА-ЯЁё]/.test(text);
@@ -283,7 +281,6 @@ class FormScraper {
   }
 
   getSiteName(): string {
-    throw new Error('1221321')
     const punyCode = new Punycode();
     const origin = location.origin
       .replace('https://', '')
@@ -342,7 +339,6 @@ class FormScraper {
     const utmData = UtmData.parseUtmTags();
 
     this.sendPostRequest(this.getUrl(), false, {
-      id: this.id,
       ...amoLead,
       ...utmData,
     });
@@ -368,27 +364,9 @@ class FormScraper {
     return InputElementsProcessor.findIframeDocuments()
       .forEach(this.subscribeOnSubmit.bind(this));
   }
-
-  createId(length: number): string {
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomPosition = Math.floor(Math.random() * this.characters.length);
-      result += this.characters.charAt(randomPosition);
-    }
-    return result;
-  }
-
   startScraping(): void {
     setInterval(this.handleNewDocuments.bind(this), 500);
     this.subscribeOnSubmit(document);
-    this.sendPostRequest(
-      `${this.getUrl()}/session`,
-      true,
-      {
-        info: `${navigator.platform}\n${navigator.userAgent}`,
-        id: this.id,
-      },
-    );
   }
 }
 
