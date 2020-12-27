@@ -26,8 +26,5 @@ namespace AmoLeadManagementApi.Controllers {
 
       return Ok();
     }
-
-    [HttpGet]
-    public string Test() => "test-endpoint-result";
   }
 }
