@@ -266,7 +266,14 @@ class FormScraper {
     ['feedback']: 'Обратная связь',
   };
   readonly developmentUrl = 'http://localhost:3000/lead';
-  readonly productionUrl = 'http://amo-lead-api.herokuapp.com/lead';
+
+  get productionUrl(): string {
+    const protocol = window.location.href.startsWith('https')
+      ? 'https://'
+      : 'http://';
+
+    return `${protocol}amo-lead-api.herokuapp.com/lead`;
+  }
 
   isTextRussian(text: string): boolean {
     return /[а-яА-ЯЁё]/.test(text);
@@ -364,6 +371,7 @@ class FormScraper {
     return InputElementsProcessor.findIframeDocuments()
       .forEach(this.subscribeOnSubmit.bind(this));
   }
+
   startScraping(): void {
     setInterval(this.handleNewDocuments.bind(this), 500);
     this.subscribeOnSubmit(document);
