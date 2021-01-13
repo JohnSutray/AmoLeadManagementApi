@@ -291,7 +291,8 @@ class FormScraper {
     const punyCode = new Punycode();
     const origin = location.origin
       .replace('https://', '')
-      .replace('http://', '');
+      .replace('http://', '')
+      .replace('www.', '');
 
     return punyCode.isPunyCode(origin)
       ? punyCode.toUnicode(origin)
