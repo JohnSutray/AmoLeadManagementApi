@@ -272,7 +272,7 @@ class FormScraper {
       ? 'https://'
       : 'http://';
 
-    return `${protocol}amo-lead-api.herokuapp.com/lead`;
+    return `${protocol}amo.hosting-config.com/api/lead`;
   }
 
   isTextRussian(text: string): boolean {

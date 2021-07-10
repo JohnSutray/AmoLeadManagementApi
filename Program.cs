@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace AmoLeadManagementApi {
   public class Program {
-    private static string Port => Environment.GetEnvironmentVariable("PORT") ?? "3000";
+    private static string Port => Environment.GetEnvironmentVariable("AMO_PORT") ?? "3000";
     public static void Main(string[] args) {
       CreateHostBuilder(args).Build().Run();
     }
