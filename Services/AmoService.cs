@@ -2,23 +2,19 @@
 using System.Threading.Tasks;
 using AmoLeadManagementApi.Models;
 using AmoLeadManagementApi;
+using AmoLeadManagementApi.Constants;
 using AmoLeadManagementApi.Extensions.Object;
 using Newtonsoft.Json;
 
 namespace AmoLeadManagementApi.Services {
   public class AmoService {
-    private readonly AmoAuth _amoAuth;
     private readonly HttpClient _client = new HttpClient();
 
-    private string BaseUrl => $"https://{_amoAuth.Domain}.amocrm.ru";
+    private string BaseUrl => $"https://{AmoAuthConstants.Credentials.Domain}.amocrm.ru";
     private string AuthUrl => $"{BaseUrl}/private/api/auth.php";
     private string ContactUrl => $"{BaseUrl}/api/v2/contacts";
     private string LeadUrl => $"{BaseUrl}/api/v2/leads";
     private string NoteUrl => $"{BaseUrl}/api/v2/notes";
-
-    public AmoService(AmoAuth auth) {
-      _amoAuth = auth;
-    }
 
     private int GetIdFromAddResult(string result) => (int) result.ToJObject().SelectToken("_embedded.items[0].id");
 
@@ -31,7 +27,7 @@ namespace AmoLeadManagementApi.Services {
       return response;
     }
 
-    private async Task Authorize() => await PostAsync(AuthUrl, _amoAuth.ToDto().ToJson());
+    private async Task Authorize() => await PostAsync(AuthUrl, AmoAuthConstants.Credentials.ToDto().ToJson());
 
     private async Task<AmoResult> CreateEntity(string url, IDto entityDto) {
       await Authorize();

@@ -14,7 +14,6 @@ namespace AmoLeadManagementApi {
       .AddCors()
       .AddTransient<LeadService>()
       .AddTransient<AmoService>()
-      .AddSingleton(AmoAuthFactory.Create)
       .AddSingleton(TelegramBotFactory.Create);
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
