@@ -239,7 +239,7 @@ class InputElementsProcessor {
   }
 
   static filterPhoneInputElements(inputElements) {
-    return inputElements.filter(input => input.type === 'tel');
+    return inputElements.filter(InputElementsProcessor.isPhoneInput);
   }
 
   static isRequiredInputsValid(formElement) {
@@ -253,6 +253,10 @@ class InputElementsProcessor {
       .from(document.querySelectorAll('iframe'))
       .map(iframe => iframe.contentDocument)
       .filter(Boolean);
+  }
+
+  static isPhoneInput(input: HTMLInputElement): boolean {
+    return input.type === 'tel';
   }
 }
 
@@ -313,7 +317,7 @@ class FormScraper {
     const validInputs = InputElementsProcessor.selectValidInputs(formElement);
     const siteName = this.getSiteName();
     const noteContent = this.createNoteContent(validInputs);
-    const phone = validInputs.find(input => input.name === 'phone').value;
+    const phone = validInputs.find(InputElementsProcessor.isPhoneInput).value;
     const leadName = `Заявка с сайта ${siteName}`;
     const tags = ['заявка', siteName];
     const info = [siteName, phone].join('\n');
