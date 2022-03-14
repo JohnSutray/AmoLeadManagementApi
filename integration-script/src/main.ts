@@ -256,7 +256,7 @@ class InputElementsProcessor {
   }
 
   static isPhoneInput(input: HTMLInputElement): boolean {
-    return input.type === 'tel';
+    return input.type === 'tel' || input.name === 'phone';
   }
 }
 
