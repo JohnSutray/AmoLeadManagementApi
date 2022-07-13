@@ -24,7 +24,7 @@ Restart=always
 RestartSec=10
 SyslogIdentifier=amo
 User=systemd-resolve
-Environment=AMO_DOMAIN=oknaramy;AMO_LOGIN=7963985@bk.ru;AMO_HASH=b0f77279682bb8732139849e82950cde61c62ef9;
+Environment=AMO_DOMAIN=oknaramy;AMO_LOGIN=7963985@bk.ru;AMO_HASH=f0aaec1a024a566ef6503bf4bdef8bdb940e2de8;
 
 [Install]
 WantedBy=multi-user.target
