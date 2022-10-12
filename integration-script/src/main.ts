@@ -245,7 +245,7 @@ class InputElementsProcessor {
   static isRequiredInputsValid(formElement) {
     return InputElementsProcessor.findInputElements(formElement)
       .filter(input => input.required)
-      .every(input => input.value);
+      .every(input => input.value && !input.value.includes('_'));
   }
 
   static findIframeDocuments() {
