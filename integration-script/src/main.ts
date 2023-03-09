@@ -193,6 +193,17 @@ class InputElementsProcessor {
   static selectValidInputs(formElement) {
     const allInputs = InputElementsProcessor.findInputElements(formElement);
 
+    console.log([
+      ...InputElementsProcessor.filterTextInputElements(allInputs),
+      ...InputElementsProcessor.filterNumberInputElements(allInputs),
+      ...InputElementsProcessor.filterCheckboxInputElements(allInputs),
+      ...InputElementsProcessor.filterSelectInputElements(allInputs),
+      ...InputElementsProcessor.filterRadioInputElements(allInputs),
+      ...InputElementsProcessor.filterPhoneInputElements(allInputs),
+      ...InputElementsProcessor.findSelectElements(formElement),
+      ...InputElementsProcessor.findSubmitButton(formElement),
+    ].filter(input => input.name && input.value));
+
     return [
       ...InputElementsProcessor.filterTextInputElements(allInputs),
       ...InputElementsProcessor.filterNumberInputElements(allInputs),
@@ -228,7 +239,7 @@ class InputElementsProcessor {
   }
 
   static filterNumberInputElements(inputElements) {
-    return inputElements.filter(input => input.type === 'text');
+    return inputElements.filter(input => input.type === 'number');
   }
 
   static filterCheckboxInputElements(inputElements) {
