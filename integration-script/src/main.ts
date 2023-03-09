@@ -327,7 +327,7 @@ class FormScraper {
     const siteName = this.getSiteName();
     const noteContent = this.createNoteContent(validInputs);
     const phone = validInputs.find(InputElementsProcessor.isPhoneInput).value;
-    const leadName = `Zayavka s saita ${siteName}`;
+    const leadName = `Заявка с сайта ${siteName}`;
     const tags = ['Zayavka', siteName];
     const info = [siteName, phone].join('\n');
     const contactName = 'Noviy contact';
