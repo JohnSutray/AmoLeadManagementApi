@@ -195,6 +195,7 @@ class InputElementsProcessor {
 
     return [
       ...InputElementsProcessor.filterTextInputElements(allInputs),
+      ...InputElementsProcessor.filterNumberInputElements(allInputs),
       ...InputElementsProcessor.filterCheckboxInputElements(allInputs),
       ...InputElementsProcessor.filterSelectInputElements(allInputs),
       ...InputElementsProcessor.filterRadioInputElements(allInputs),
@@ -223,6 +224,10 @@ class InputElementsProcessor {
   }
 
   static filterTextInputElements(inputElements) {
+    return inputElements.filter(input => input.type === 'text');
+  }
+
+  static filterNumberInputElements(inputElements) {
     return inputElements.filter(input => input.type === 'text');
   }
 
@@ -268,6 +273,8 @@ class FormScraper {
     ['area']: 'Площадь',
     ['light-point']: 'Точки освещения',
     ['feedback']: 'Обратная связь',
+    ['width']: 'Ширина',
+    ['height']: 'Высота',
   };
   readonly developmentUrl = 'http://localhost:3000/lead';
 
@@ -284,6 +291,8 @@ class FormScraper {
   }
 
   mapName(name: string): string {
+    name = name?.toLowerCase();
+
     if (this.isTextRussian(name) || !this._nameMap[name]) {
       return name;
     }
