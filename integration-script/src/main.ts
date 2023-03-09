@@ -287,7 +287,7 @@ class FormScraper {
   }
 
   isTextRussian(text: string): boolean {
-    return /[а-яА-ЯЁё]/.test(text);
+    return  /[\u0400-\u04FF]/.test(text);
   }
 
   mapName(name: string): string {
