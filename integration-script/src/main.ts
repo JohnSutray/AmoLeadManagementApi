@@ -268,13 +268,13 @@ class InputElementsProcessor {
 class FormScraper {
   readonly _registeredDocuments = [];
   readonly _nameMap = {
-    ['type-ceil']: 'Tip potolka',
-    ['phone']: 'Telefon',
-    ['area']: 'Ploschad',
-    ['light-point']: 'Tochki',
-    ['feedback']: 'Obratnaya svyaz',
-    ['width']: 'Shirina',
-    ['height']: 'Visota',
+    ['type-ceil']: 'Тип потолка',
+    ['phone']: 'Телефон',
+    ['area']: 'Площадь',
+    ['light-point']: 'Точки освещения',
+    ['feedback']: 'Обратная связь',
+    ['width']: 'Ширина',
+    ['height']: 'Высота',
   };
   readonly developmentUrl = 'http://localhost:3000/lead';
 
@@ -328,9 +328,9 @@ class FormScraper {
     const noteContent = this.createNoteContent(validInputs);
     const phone = validInputs.find(InputElementsProcessor.isPhoneInput).value;
     const leadName = `Заявка с сайта ${siteName}`;
-    const tags = ['Zayavka', siteName];
+    const tags = ['Заявка', siteName];
     const info = [siteName, phone].join('\n');
-    const contactName = 'Noviy contact';
+    const contactName = 'Новый контакт';
     const amoLead = new AmoLead(leadName, contactName, tags, info, phone, siteName, noteContent);
 
     if (this.validatePhone(phone)) {
