@@ -328,7 +328,7 @@ class FormScraper {
     const noteContent = this.createNoteContent(validInputs);
     const phone = validInputs.find(InputElementsProcessor.isPhoneInput).value;
     const leadName = `Заявка с сайта ${siteName}`;
-    const tags = ['Заявка', siteName];
+    const tags = ['заявка', siteName];
     const info = [siteName, phone].join('\n');
     const contactName = 'Новый контакт';
     const amoLead = new AmoLead(leadName, contactName, tags, info, phone, siteName, noteContent);
