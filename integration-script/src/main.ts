@@ -193,17 +193,6 @@ class InputElementsProcessor {
   static selectValidInputs(formElement) {
     const allInputs = InputElementsProcessor.findInputElements(formElement);
 
-    console.log([
-      ...InputElementsProcessor.filterTextInputElements(allInputs),
-      ...InputElementsProcessor.filterNumberInputElements(allInputs),
-      ...InputElementsProcessor.filterCheckboxInputElements(allInputs),
-      ...InputElementsProcessor.filterSelectInputElements(allInputs),
-      ...InputElementsProcessor.filterRadioInputElements(allInputs),
-      ...InputElementsProcessor.filterPhoneInputElements(allInputs),
-      ...InputElementsProcessor.findSelectElements(formElement),
-      ...InputElementsProcessor.findSubmitButton(formElement),
-    ].filter(input => input.name && input.value));
-
     return [
       ...InputElementsProcessor.filterTextInputElements(allInputs),
       ...InputElementsProcessor.filterNumberInputElements(allInputs),
@@ -279,13 +268,13 @@ class InputElementsProcessor {
 class FormScraper {
   readonly _registeredDocuments = [];
   readonly _nameMap = {
-    ['type-ceil']: 'Тип потолка',
-    ['phone']: 'Телефон',
-    ['area']: 'Площадь',
-    ['light-point']: 'Точки освещения',
-    ['feedback']: 'Обратная связь',
-    ['width']: 'Ширина',
-    ['height']: 'Высота',
+    ['type-ceil']: 'Tip potolka',
+    ['phone']: 'Telefon',
+    ['area']: 'Ploschad',
+    ['light-point']: 'Tochki',
+    ['feedback']: 'Obratnaya svyaz',
+    ['width']: 'Shirina',
+    ['height']: 'Visota',
   };
   readonly developmentUrl = 'http://localhost:3000/lead';
 
@@ -338,10 +327,10 @@ class FormScraper {
     const siteName = this.getSiteName();
     const noteContent = this.createNoteContent(validInputs);
     const phone = validInputs.find(InputElementsProcessor.isPhoneInput).value;
-    const leadName = `Заявка с сайта ${siteName}`;
-    const tags = ['заявка', siteName];
+    const leadName = `Zayavka s saita ${siteName}`;
+    const tags = ['Zayavka', siteName];
     const info = [siteName, phone].join('\n');
-    const contactName = 'Новый контакт';
+    const contactName = 'Noviy contact';
     const amoLead = new AmoLead(leadName, contactName, tags, info, phone, siteName, noteContent);
 
     if (this.validatePhone(phone)) {
