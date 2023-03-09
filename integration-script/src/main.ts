@@ -291,7 +291,7 @@ class FormScraper {
   }
 
   mapName(name: string): string {
-    name = name?.toLowerCase();
+    name = name && name.toLowerCase();
 
     if (this.isTextRussian(name) || !this._nameMap[name]) {
       return name;
