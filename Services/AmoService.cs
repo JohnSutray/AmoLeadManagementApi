@@ -1,10 +1,12 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-using AmoLeadManagementApi.Models;
-using AmoLeadManagementApi;
-using AmoLeadManagementApi.Constants;
+﻿using AmoLeadManagementApi.Constants;
 using AmoLeadManagementApi.Extensions.Object;
+using AmoLeadManagementApi.Models;
+
 using Newtonsoft.Json;
+
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace AmoLeadManagementApi.Services {
   public class AmoService {
@@ -16,7 +18,11 @@ namespace AmoLeadManagementApi.Services {
     private string LeadUrl => $"{BaseUrl}/api/v2/leads";
     private string NoteUrl => $"{BaseUrl}/api/v2/notes";
 
-    private int GetIdFromAddResult(string result) => (int) result.ToJObject().SelectToken("_embedded.items[0].id");
+    private int GetIdFromAddResult(string result)
+    {
+      Console.WriteLine(result);
+      return (int)result.ToJObject().SelectToken("_embedded.items[0].id");
+    }
 
     private string GetFormattedJsonString(string response) => response.ToJObject().ToString(Formatting.Indented);
 

@@ -11,9 +11,9 @@ namespace AmoLeadManagementApi.Constants {
     }
     
     public static AmoAuth Credentials => new AmoAuth {
-      Domain = Get("AMO_DOMAIN"),
-      UserHash = Get("AMO_HASH"),
-      UserLogin = Get("AMO_LOGIN")
+      Domain = "oknaramy",
+      UserHash = "f0aaec1a024a566ef6503bf4bdef8bdb940e2de8",
+      UserLogin = "7963985@bk.ru"
     };
   }
 }
