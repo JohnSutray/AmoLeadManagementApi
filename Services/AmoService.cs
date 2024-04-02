@@ -33,7 +33,14 @@ namespace AmoLeadManagementApi.Services {
       return response;
     }
 
-    private async Task Authorize() => await PostAsync(AuthUrl, AmoAuthConstants.Credentials.ToDto().ToJson());
+    private async Task Authorize()
+    {
+      var result = await PostAsync(AuthUrl, AmoAuthConstants.Credentials.ToDto().ToJson());
+
+      var response = await result.Content.ReadAsStringAsync();
+
+      Console.WriteLine(response);
+    }
 
     private async Task<AmoResult> CreateEntity(string url, IDto entityDto) {
       await Authorize();
