@@ -276,14 +276,14 @@ class FormScraper {
     ['width']: 'Ширина',
     ['height']: 'Высота',
   };
-  readonly developmentUrl = 'http://localhost:3000/lead';
+  readonly developmentUrl = 'http://localhost:3000';
 
   get productionUrl(): string {
     const protocol = window.location.href.startsWith('https')
       ? 'https://'
       : 'http://';
 
-    return `${protocol}amo.hosting-config.com/api/lead`;
+    return `${protocol}api.shkafkype.by`;
   }
 
   isTextRussian(text: string): boolean {

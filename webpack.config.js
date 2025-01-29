@@ -1,6 +1,4 @@
 const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin;
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -9,9 +7,14 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'amo-integration.js',
   },
-  mode: 'production',
+  devtool: 'source-map',
   resolve: {
     extensions: ['.ts', '.js'],
+  },
+  devServer: {
+    contentBase: 'dist',
+    compress: true,
+    port: 3001,
   },
   module: {
     rules: [
@@ -19,26 +22,11 @@ module.exports = {
         test: /\.ts$/,
         use: 'source-map-loader',
       },
-      { 
-        test: /\.ts?$/,
-        loader: 'ts-loader',
-        options: {
-          configFile: 'tsconfig.prod.json'
-        }
-      },
+      { test: /\.ts?$/, use: 'ts-loader' },
       { test: /\.js?$/, use: 'babel-loader' },
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: './src/index.html',
-          to: './index.html',
-        },
-      ],
-    }),
     new HtmlWebpackPlugin({
       template: 'src/index.html',
       minify: {

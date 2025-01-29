@@ -1,3 +1,6 @@
+amo-integration.js
+node_modules
+.idea
 bin/
 obj/
 /packages/
