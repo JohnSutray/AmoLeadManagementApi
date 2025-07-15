@@ -1,0 +1,8 @@
+{
+  "name": "email_test",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "C:\\php\\php.exe -S localhost:3000"
+  },
+  "private": true
+}

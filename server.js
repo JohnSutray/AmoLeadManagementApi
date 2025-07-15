@@ -1,67 +1,13 @@
-const responsible_user_id = 638376;
-
-
-class CRUDMethods {
-  constructor(api, entity) {
-    this.entity = entity;
-    this.api = api;
-  }
-
-  async get(id) {
-    return this.api.getEntity(`/${this.entity}`, id);
-  }
-
-  async create(properties) {
-    return this.api.createEntity(`/${this.entity}`, properties);
-  }
-
-  async update(properties) {
-    return this.api.updateEntity(`/${this.entity}`, properties);
-  }
-
-  async list(query, limit = 10) {
-    return this.api.listEntity(`/${this.entity}`, query, limit);
-  }
-
-  async delete(id) {
-
-  }
-}
-
-class SipuniAmocrm {
+class Amocrm {
   options = {};
-  customFieldsCache = {};
-  cachedMethodsObjects = {};
+  amoIntegrationFile = '';
+  responsible_user_id = 638376;
 
   constructor(options) {
     this.options = options;
     this.util = require('util');
     this.querystring = require('node:querystring');
-  }
-
-  _getMethodsObject(entity, className) {
-    if (!this.cachedMethodsObjects[entity]) {
-      this.cachedMethodsObjects[entity] = new className(this, entity);
-    }
-    return this.cachedMethodsObjects[entity];
-  }
-
-  // API methods grouped by entity
-
-  get tasks() {
-    return this._getMethodsObject('tasks', CRUDMethods);
-  }
-
-  get leads() {
-    return this._getMethodsObject('leads', CRUDMethods);
-  }
-
-  get companies() {
-    return this._getMethodsObject('companies', CRUDMethods);
-  }
-
-  get contacts() {
-    return this._getMethodsObject('contacts', CRUDMethods);
+    this.amoIntegrationFile = require('fs').readFileSync('./amo-integration.js', { encoding: 'utf-8' });
   }
 
   async complexLead(lead) {
@@ -74,54 +20,13 @@ class SipuniAmocrm {
     return result;
   }
 
-  async getEventTypes() {
-    return await this.request('GET', '/events/types');
-  }
-
-  async getNotesTypes(entityType) {
-    return await this.request('GET', `/${entityType}/notes`);
-  }
-
   async createLeadNote(params) {
     return await this.request('POST', `/leads/notes`, params);
   }
 
-  // Universal requests
-
-  log = (...item) => console.log(
-    this.util.inspect(
-      item,
-      {
-        showHidden: false,
-        depth: null,
-        colors: true,
-      },
-    ),
-  );
-
   valueOrNull = (val) => val ? val : null;
 
-  firstOrNull(arr) {
-    if (Array.isArray(arr)) {
-      return arr[0] || null;
-    }
-    return null;
-  }
-
-  trim(str, ch) {
-    let start = 0, end = str.length;
-
-    while (start < end && str[start] === ch)
-      ++start;
-
-    while (end > start && str[end - 1] === ch)
-      --end;
-
-    return (start > 0 || end < str.length) ? str.substring(start, end) : str;
-  }
-
   async request(method, path, paramsOrData = {}) {
-    this.log('[START] ', method, path);
     const isGet = method === 'GET';
     const params = isGet ? paramsOrData : {};
     const data = !isGet ? paramsOrData : {};
@@ -151,8 +56,6 @@ class SipuniAmocrm {
 
       const rData = await response.json();
 
-      this.log(method, path, rData);
-
       return this.valueOrNull(rData);
     } catch (error) {
       console.error(error);
@@ -173,79 +76,6 @@ class SipuniAmocrm {
       }
       throw new Error(message);
     }
-  }
-
-  async requestMultipage(data_field, path, params = {}) {
-    const result = [];
-    let page = 1;
-    let hasMorePages = true;
-    while (hasMorePages) {
-      const data = await this.request('GET', path, {
-        ...params,
-        page,
-      });
-      result.push(...data._embedded[data_field]);
-      hasMorePages = data._page_count > page;
-      page += 1;
-    }
-    return result;
-  }
-
-  async _entityRequest(method, path, paramsOrData, singleResult = true) {
-    const result = await this.request(method, path, paramsOrData);
-    const entity = this.trim(path, '/');
-    if (singleResult) {
-      return this.firstOrNull(result && result._embedded[entity]);
-    } else {
-      return result && result._embedded && result._embedded[entity];
-    }
-  }
-
-  async getEntity(path, itemId) {
-    return this.request('GET', `${path}/${itemId}`, {});
-  }
-
-  async listEntity(path, query, limit = 10) {
-    return this._entityRequest('GET', path,
-      {
-        ...query,
-        limit,
-      },
-      false);
-  }
-
-  _getParamsArray(params) {
-    if (params instanceof Array) {
-      return params;
-    } else if (params instanceof Object) {
-      return [params];
-    } else {
-      throw new Error('Expected array or object');
-    }
-  }
-
-  async createEntity(path, properties) {
-    const singeResult = !(properties instanceof Array);
-    return this._entityRequest('POST', path, this._getParamsArray(properties), singeResult);
-  }
-
-  async updateEntity(path, properties) {
-    const singeResult = !(properties instanceof Array);
-    return this._entityRequest('PATCH', path, this._getParamsArray(properties), singeResult);
-  }
-
-  async createTask({
-    leadId,
-    taskText,
-  }) {
-    return await this.tasks.create({
-      element_id: leadId,
-      element_type: 2,
-      'task_type_id': 2,
-      complete_till: Date.now() * 1000,
-      text: taskText,
-      responsible_user_id,
-    });
   }
 
   createClientFields({
@@ -305,22 +135,20 @@ class SipuniAmocrm {
     ];
   }
 
-  async createLeadWithContact(
-    {
-      leadName
-      , noteContent
-      , tags
-      , name
-      , phone
-      , info
-      , source
-      , utmCampaign
-      , utmContent
-      , utmSource
-      , utmMedium
-      , utmTerm,
-    },
-  ) {
+  async createLeadWithContactAndNote({
+    leadName,
+    noteContent,
+    tags,
+    name,
+    phone,
+    info,
+    source,
+    utmCampaign,
+    utmContent,
+    utmSource,
+    utmMedium,
+    utmTerm,
+  }) {
     const lead = await this.createLead({
       leadName,
       contactName: name,
@@ -350,12 +178,15 @@ class SipuniAmocrm {
     await this.createLeadNote([{
       entity_id: lead.id,
       note_type: 'common',
-      responsible_user_id,
+      responsible_user_id: this.responsible_user_id,
       params: {
         text: noteContent,
       },
     }]);
 
+    return {
+      leadId: lead.id,
+    }
   }
 
   createCustomField = ({
@@ -364,7 +195,7 @@ class SipuniAmocrm {
   }) => {
     return {
       field_id: id,
-      values: [{ value }],
+      values: [{ value: value || '' }],
     };
   };
 
@@ -380,11 +211,6 @@ class SipuniAmocrm {
     utmContent,
   }) {
     return [
-      this.createCustomField({
-        // info
-        id: 943010,
-        value: `${info} ${phone} ${source}`,
-      }),
       this.createCustomField({
         //  UtmSource
         id: 1513281,
@@ -423,118 +249,323 @@ class SipuniAmocrm {
     return await this.complexLead({
       name: leadName,
       tags_to_add: tags.map(t => ({ name: t })),
-      responsible_user_id,
+      responsible_user_id: this.responsible_user_id,
       custom_fields_values: customFields,
       _embedded: {
-        // tags: tags.map(t => ({
-        //   name: t,
-        // })),
         contacts: [
           {
             name: contactName,
             tags,
-            responsible_user_id,
+            responsible_user_id: this.responsible_user_id,
             custom_fields_values: contactCustomFields,
           },
         ],
       },
     });
   }
+}
 
-  async createContact({
+class HttpServer {
+  routes = [
+    {
+      method: 'OPTIONS',
+      url: '*',
+      handler: async () => ({
+        data: {},
+      }),
+    },
+  ];
+
+  constructor(routes) {
+    this.routes = routes;
+    this.init();
+  }
+
+  parseBody = (request) => {
+    let body = '';
+
+    request.on('data', (chunk) => {
+      body += chunk;
+    });
+
+    return new Promise(res => {
+      request.on('end', () => {
+        try {
+          res(JSON.parse(body));
+        } catch (e) {
+          console.error(e);
+          res(undefined);
+        } finally {
+          console.log(request.method, request.url, body);
+        }
+      });
+
+      setTimeout(() => {
+        res(undefined);
+      }, 3000);
+    });
+  };
+
+  endRequest = ({
+    response,
+    headers = {},
+    data,
+    status = 200
+  }) => {
+    response.writeHead(status, {
+      ...headers,
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+      'Access-Control-Max-Age': 2592000,
+    });
+
+    response.end(data);
+  };
+
+  init() {
+    this.server = require('http').createServer(async (request, response) => {
+      const body = request.method === 'POST'
+        ? await this.parseBody(request)
+        : undefined;
+
+      for (const route of this.routes) {
+        if (route.method === request.method && (route.url === request.url || route.url === '*')) {
+          try {
+            const { data, headers } = await route.handler(body);
+
+            return this.endRequest({
+              response,
+              data,
+              headers,
+            });
+          } catch (e) {
+            return this.endRequest({
+              response,
+              data: e.message,
+              status: 500,
+            });
+          }
+        }
+      }
+
+      this.endRequest({
+        response,
+        data: 'Not found',
+        status: 200,
+      });
+    });
+  }
+
+  start(port) {
+    this.server.listen(port, () => {
+      console.log(`Server listening on http://localhost:${port}`);
+    })
+  }
+}
+
+class BitrixApi {
+  executeBitrixMethod = async (path, params) => {
+    const request = await fetch(
+      `https://b24-l77l7x.bitrix24.by/rest/244/vs1asvsy98wuxn21/${path}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(params),
+      },
+    );
+
+    const response = await request.json();
+
+    return response.result;
+  };
+
+  createDealWithContactAndComment = async ({
+    comment,
     name,
-    customFields,
-  }) {
-    return await api.contacts.create({
+    phone,
+    source,
+
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
+  }) => {
+    const contactId = await this.createContact({
       name,
-      responsible_user_id,
-      custom_fields_values: customFields,
+      phone,
+    });
+    const dealId = await this.createDeal({
+      source,
+      contactId,
+
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+    });
+
+    await this.createComment({
+      dealId,
+      comment,
+    });
+
+    return { dealId };
+  };
+
+  async createDeal({
+    source,
+    contactId,
+
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
+  }) {
+    const UTM_MEDIUM = utmMedium?.toUpperCase();
+
+    return await this.executeBitrixMethod('crm.deal.add', {
+      fields: {
+        TITLE: `Заявка с сайта ${source}`,
+        // это просто надо
+        CATEGORY_ID: '16',
+        // Источник сделки
+        UF_CRM_1751829639895: source,
+        // Тип источника
+        UF_CRM_1751829679241: '810',
+        CONTACT_ID: contactId,
+
+        UTM_SOURCE: utmSource,
+        UTM_MEDIUM: UTM_MEDIUM === 'CPC' || UTM_MEDIUM === 'CPM'
+          ? UTM_MEDIUM
+          : undefined,
+        UTM_CAMPAIGN: utmCampaign,
+        UTM_CONTENT: utmContent,
+        UTM_TERM: utmTerm,
+      },
+    });
+  }
+
+  async createComment({ dealId, comment }) {
+    return await this.executeBitrixMethod('crm.timeline.comment.add', {
+      fields: {
+        ENTITY_ID: dealId,
+        ENTITY_TYPE: 'deal',
+        COMMENT: comment,
+      },
+    });
+  }
+
+  async createContact({ name = '', phone = '' }) {
+    const splittedFio = (name || '').split(' ');
+
+    if (splittedFio.length === 1) {
+      splittedFio.unshift('');
+    }
+
+    if (splittedFio.length === 2) {
+      splittedFio.push('');
+    }
+
+    const [LAST_NAME, NAME, SECOND_NAME] = splittedFio;
+
+    return await this.executeBitrixMethod('crm.contact.add', {
+      fields: {
+        NAME,
+        SECOND_NAME,
+        LAST_NAME,
+        PHONE: [{
+          TYPE_ID: 'PHONE',
+          VALUE: phone,
+        }],
+      },
     });
   }
 }
 
-const api = new SipuniAmocrm({
+const amocrm = new Amocrm({
   login: '7963985@bk.ru',
   hash: 'f0aaec1a024a566ef6503bf4bdef8bdb940e2de8',
   domain: 'oknaramy.amocrm.ru',
   apiUrl: '/api/v4',
 });
-
-const http = require('http');
-
-const parseBody = (r) => {
-  let body = '';
-
-  r.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  return new Promise(res => {
-    r.on('end', () => {
-      try {
-        res(JSON.parse(body));
-      } catch (e) {
-        console.error(e);
-        res(undefined);
-      } finally {
-        console.log(r.method, r.url, body);
-      }
-    });
-
-    setTimeout(() => {
-      res(undefined);
-    }, 3000);
-  });
-};
-
-const amoIntegrationFile = require('fs').readFileSync('./dist/amo-integration.js', { encoding: 'utf-8' });
-
-const server = http.createServer(async (request, response) => {
-  try {
-    if (request.method === 'GET') {
-      if (request.url === '/amo-integration.js') {
-        response.writeHead(200, {
-          "Content-Type": "text/javascript",
-        });
-        response.end(amoIntegrationFile);
-        return;
+const bitrixApi = new BitrixApi();
+const server = new HttpServer([
+  {
+    url: '/',
+    method: 'GET',
+    handler: () => ({
+      data: 'use /amo-integration.js to get integration file',
+    }),
+  },
+  {
+    url: '/amo-integration.js',
+    method: 'GET',
+    handler: () => ({
+      headers: {
+        'Content-Type': 'text/javascript',
+      },
+      data: amocrm.amoIntegrationFile,
+    }),
+  },
+  {
+    url: '/',
+    method: 'POST',
+    handler: async (body) => {
+      if (!body) {
+        return {
+          body: 'incorrect body',
+        };
       }
 
-      response.end('use /amo-integration.js to get integration file');
-      return;
-    }
+      const amoRequest = amocrm.createLeadWithContactAndNote({
+        name: body.contactName,
+        phone: body.phone,
+        info: body.info,
+        source: body.source,
+        leadName: body.leadName,
+        tags: body.tags,
+        utmCampaign: body.utmCampaign,
+        utmContent: body.utmContent,
+        utmMedium: body.utmMedium,
+        utmSource: body.utmSource,
+        utmTerm: body.utmTerm,
+        noteContent: body.noteContent,
+      });
+      const bitrixRequest = bitrixApi.createDealWithContactAndComment({
+        source: body.source,
+        comment: body.noteContent,
+        name: body.contactName,
+        phone: body.phone,
 
-    const body = await parseBody(request);
+        utmSource: body.utmSource,
+        utmMedium: body.utmMedium,
+        utmCampaign: body.utmCampaign,
+        utmContent: body.utmContent,
+        utmTerm: body.utmTerm,
+      });
 
-    if (!body) {
-      response.end('incorrect body');
-      return;
-    }
+      if (process.env.NODE_ENV !== 'production') {
+        const [amo, bitrix] = await Promise.all([amoRequest, bitrixRequest]);
 
-    await api.createLeadWithContact({
-      name: body.contactName,
-      phone: body.phone,
-      info: body.info,
-      source: body.source,
-      leadName: body.leadName,
-      tags: body.tags,
-      utmCampaign: body.utmCampaign,
-      utmContent: body.utmContent,
-      utmMedium: body.utmMedium,
-      utmSource: body.utmSource,
-      utmTerm: body.utmTerm,
-      noteContent: body.noteContent,
-    });
+        return {
+          amo,
+          bitrix
+        }
+      }
 
-    response.end(JSON.stringify({ success: true }));
-  } catch (e) {
-    console.error(e);
-    response.end(JSON.stringify({ success: false }));
-  }
-});
-
+      return {
+        success: true,
+      }
+    },
+  },
+]);
 const port = process.env.PORT || 3000;
 
-server.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
-});
+server.start(port);
