@@ -411,12 +411,71 @@ class BitrixApi {
     });
 
     await this.createComment({
-      dealId,
+      id: dealId,
       comment,
+      entityType: 'deal'
     });
 
     return { dealId };
   };
+
+  async createLead({
+    source,
+
+    comment,
+
+    name = '',
+    phone = '',
+
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
+  }) {
+    const {SECOND_NAME, LAST_NAME, NAME} = this.parseFio(name);
+    const UTM_MEDIUM = utmMedium?.toUpperCase();
+
+    const leadId = await this.executeBitrixMethod('crm.lead.add', {
+      fields: {
+        TITLE: `Заявка с сайта ${source}`,
+        // это просто надо
+        // CATEGORY_ID: '16',
+        // // Источник сделки
+        // UF_CRM_1751829639895: source,
+        // // Тип источника
+        // UF_CRM_1751829679241: '810',
+        // CONTACT_ID: contactId,
+
+        SECOND_NAME,
+        LAST_NAME,
+        NAME,
+        PHONE: [{
+          TYPE_ID: 'PHONE',
+          VALUE: phone,
+        }],
+
+        SOURCE_ID: 'WEB',
+        SOURCE_DESCRIPTION: source,
+
+        UTM_SOURCE: utmSource,
+        UTM_MEDIUM: UTM_MEDIUM === 'CPC' || UTM_MEDIUM === 'CPM'
+          ? UTM_MEDIUM
+          : undefined,
+        UTM_CAMPAIGN: utmCampaign,
+        UTM_CONTENT: utmContent,
+        UTM_TERM: utmTerm,
+      },
+    });
+
+    await this.createComment({
+      id: leadId,
+      entityType: 'lead',
+      comment,
+    })
+
+    return leadId;
+  }
 
   async createDeal({
     source,
@@ -452,17 +511,17 @@ class BitrixApi {
     });
   }
 
-  async createComment({ dealId, comment }) {
+  async createComment({ id, comment, entityType }) {
     return await this.executeBitrixMethod('crm.timeline.comment.add', {
       fields: {
-        ENTITY_ID: dealId,
-        ENTITY_TYPE: 'deal',
+        ENTITY_ID: id,
+        ENTITY_TYPE: entityType,
         COMMENT: comment,
       },
     });
   }
 
-  async createContact({ name = '', phone = '' }) {
+  parseFio(name) {
     const splittedFio = (name || '').split(' ');
 
     if (splittedFio.length === 1) {
@@ -474,6 +533,16 @@ class BitrixApi {
     }
 
     const [LAST_NAME, NAME, SECOND_NAME] = splittedFio;
+
+    return {
+      LAST_NAME,
+      NAME,
+      SECOND_NAME,
+    }
+  }
+
+  async createContact({ name = '', phone = '' }) {
+    const {LAST_NAME, NAME, SECOND_NAME} = this.parseFio(name);
 
     return await this.executeBitrixMethod('crm.contact.add', {
       fields: {
@@ -538,7 +607,7 @@ const server = new HttpServer([
         utmTerm: body.utmTerm,
         noteContent: body.noteContent,
       });
-      const bitrixRequest = bitrixApi.createDealWithContactAndComment({
+      const bitrixRequest = bitrixApi.createLead({
         source: body.source,
         comment: body.noteContent,
         name: body.contactName,
